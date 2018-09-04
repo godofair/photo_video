@@ -28,7 +28,6 @@ public class MainCameraActivity extends Activity {
 
         initModule();
         initView();
-        DataSaveImpl.parentPath = this.getFilesDir().getAbsolutePath();
     }
 
     public void initModule() {

@@ -1,5 +1,6 @@
 package com.example.feicui.testcamera;
 
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -13,19 +14,13 @@ import java.util.Date;
 
 public class DataSaveImpl {
 
-    public static String parentPath;
-
     public static void saveImage(byte[] bytes) {
-        if (TextUtils.isEmpty(parentPath))
-            return;
-
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat dateFormat = new SimpleDateFormat("_yyyyMMdd_HHmmss");
         String fileName = dateFormat.format(date);
-        String filepath = (new File(parentPath, fileName + ".jpg")).getAbsolutePath();
+        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestImg"+fileName + ".jpg")).getAbsolutePath();
         Log.d("DataSaveImpl","save image file = " + filepath);
         OutputStream outputStream = null;
-
         try {
             outputStream = new FileOutputStream(filepath);
             outputStream.write(bytes, 0, bytes.length);
@@ -36,6 +31,14 @@ public class DataSaveImpl {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    public static String getNextVideoFileName(){
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("_yyyyMMdd_HHmmss");
+        String fileName = dateFormat.format(date);
+        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestVIDEO"+fileName + ".mp4")).getAbsolutePath();
+        Log.d("DataSaveImpl","save video file = " + filepath);
+        return filepath;
     }
 }

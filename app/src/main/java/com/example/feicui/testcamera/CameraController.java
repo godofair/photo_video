@@ -66,6 +66,4 @@ public class CameraController {
             cameraAgent.setPreview(surfaceTexture);
     }
 
-
-
 }
