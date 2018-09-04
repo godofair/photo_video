@@ -3,6 +3,7 @@ package com.example.feicui.testcamera;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.storage.StorageManager;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
@@ -24,8 +25,10 @@ public class MainCameraActivity extends Activity {
         ActionBar bar = getActionBar();
         if (bar != null)
             bar.hide();
-        initView();
+
         initModule();
+        initView();
+        DataSaveImpl.parentPath = this.getFilesDir().getAbsolutePath();
     }
 
     public void initModule() {
@@ -83,6 +86,8 @@ public class MainCameraActivity extends Activity {
                 }
             }
         });
+        mPreviewView = findViewById(R.id.preview_view);
+        mPreviewView.setSurfaceTextureListener(mPhotoModule);
     }
 
     public void switchModule(BasicModule newModule) {
