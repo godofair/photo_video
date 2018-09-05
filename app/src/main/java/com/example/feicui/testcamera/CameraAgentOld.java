@@ -35,12 +35,13 @@ public class CameraAgentOld extends CameraAgent implements MediaRecorder.OnInfoL
         if (texture == null || camera == null)
             return;
         try {
+            camera.setDisplayOrientation(90);
             camera.setPreviewTexture(texture);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        Log.d(TAG, "start preview w = " + camera.getParameters().getPreviewSize().width+" h = " + camera.getParameters().getPreviewSize().height);
+        Log.d(TAG, "start preview w = " + camera.getParameters().getPreviewSize().width + " h = " + camera.getParameters().getPreviewSize().height);
         camera.startPreview();
     }
 
@@ -83,17 +84,17 @@ public class CameraAgentOld extends CameraAgent implements MediaRecorder.OnInfoL
         if (camcorderProfile == null)
             camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
         if (camera != null) {
-//            camera.setDisplayOrientation(90);
+            camera.setDisplayOrientation(90);
             camera.stopPreview();
             Camera.Parameters p = camera.getParameters();
-            Log.d(TAG, "startRecord change setting before w = " + p.getPreviewSize().width+" h = " + p.getPreviewSize().height);
+            Log.d(TAG, "startRecord change setting before w = " + p.getPreviewSize().width + " h = " + p.getPreviewSize().height);
 
-            p.setPreviewSize(camcorderProfile.videoFrameWidth,camcorderProfile.videoFrameHeight);
+            p.setPreviewSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
 
             camera.setParameters(p);
             p = camera.getParameters();
 
-            Log.d(TAG, "startRecord change setting after w = " + p.getPreviewSize().width+" h = " + p.getPreviewSize().height);
+            Log.d(TAG, "startRecord change setting after w = " + p.getPreviewSize().width + " h = " + p.getPreviewSize().height);
             try {
                 camera.setPreviewTexture(texture);
             } catch (IOException e) {
@@ -111,8 +112,8 @@ public class CameraAgentOld extends CameraAgent implements MediaRecorder.OnInfoL
         mediaRecorder.setProfile(camcorderProfile);
 
 //        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth,camcorderProfile.videoFrameHeight);
-        Log.d(TAG,"set video size  w = " + camcorderProfile.videoFrameWidth + " h = " + camcorderProfile.videoFrameHeight);
+        mediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
+        Log.d(TAG, "set video size  w = " + camcorderProfile.videoFrameWidth + " h = " + camcorderProfile.videoFrameHeight);
 //        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
 //        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
         mediaRecorder.setCaptureRate(30);
@@ -145,7 +146,7 @@ public class CameraAgentOld extends CameraAgent implements MediaRecorder.OnInfoL
     @Override
     public void setParameter() {
         Log.d(TAG, "set parameter");
-//        camera.setDisplayOrientation(180);
+        camera.setDisplayOrientation(90);
         Camera.Parameters p = camera.getParameters();
         p.setPreviewSize(1280, 720);
         camera.setParameters(p);
@@ -154,7 +155,8 @@ public class CameraAgentOld extends CameraAgent implements MediaRecorder.OnInfoL
     @Override
     public void setPreview(SurfaceTexture texture) {
         Log.d(TAG, "set preview  texture");
-        this.texture = texture;
+        if (this.texture != texture)
+            this.texture = texture;
     }
 
     @Override

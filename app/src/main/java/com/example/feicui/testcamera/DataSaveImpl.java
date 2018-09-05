@@ -1,5 +1,6 @@
 package com.example.feicui.testcamera;
 
+import android.media.Image;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
@@ -9,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -40,5 +42,28 @@ public class DataSaveImpl {
         String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestVIDEO"+fileName + ".mp4")).getAbsolutePath();
         Log.d("DataSaveImpl","save video file = " + filepath);
         return filepath;
+    }
+
+
+    public static void saveImage(Image image) {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("_yyyyMMdd_HHmmss");
+        String fileName = dateFormat.format(date);
+        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestImg"+fileName + ".jpg")).getAbsolutePath();
+        Log.d("DataSaveImpl","save image file = " + filepath);
+        OutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(filepath);
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            outputStream.write(bytes, 0, bytes.length);
+            outputStream.flush();
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

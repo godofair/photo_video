@@ -6,6 +6,8 @@ public abstract class BasicModule {
 
     protected String TAG = this.getClass().getName();
 
+    protected boolean newApi = false;
+
     protected Context mContext;
 
     BasicModule(Context context) {
@@ -17,4 +19,13 @@ public abstract class BasicModule {
     abstract public void pause();
 
     abstract public void startAction();
+
+    public void setNewApi(boolean newApi){
+        this.newApi = newApi;
+    }
+
+    public void restart(){
+        pause();
+        resume();
+    }
 }

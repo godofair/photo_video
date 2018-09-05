@@ -3,4 +3,6 @@
     <string name="capture">Capture</string>
     <string name="video">Video</string>
     <string name="photo">Photo</string>
+    <string name="api1">Api1</string>
+    <string name="api2">Api2</string>
 </resources>

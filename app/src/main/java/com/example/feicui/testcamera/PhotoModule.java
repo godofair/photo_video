@@ -16,7 +16,7 @@ public class PhotoModule extends BasicModule implements TextureView.SurfaceTextu
     @Override
     public void resume() {
         Log.d(TAG, "resume");
-        CameraController.getInstance().openCamera(false);
+        CameraController.getInstance().openCamera(mContext,newApi);
         CameraController.getInstance().startPreview();
     }
 

@@ -1,5 +1,6 @@
 package com.example.feicui.testcamera;
 
+import android.content.Context;
 import android.graphics.SurfaceTexture;
 
 public class CameraController {
@@ -11,16 +12,17 @@ public class CameraController {
     private CameraAgentNew cameraAgentNew;
     private CameraAgentOld cameraAgentOld;
 
+    private SurfaceTexture texture;
     static CameraController getInstance() {
         if (mCameraController == null)
             mCameraController = new CameraController();
         return mCameraController;
     }
 
-    public void openCamera(boolean isNewApi) {
+    public void openCamera(Context context,boolean isNewApi) {
         if (isNewApi) {
             if (cameraAgentNew == null)
-                cameraAgentNew = new CameraAgentNew();
+                cameraAgentNew = new CameraAgentNew(context);
             cameraAgent = cameraAgentNew;
         } else {
             if (cameraAgentOld == null)
@@ -32,8 +34,11 @@ public class CameraController {
     }
 
     public void startPreview() {
-        if (cameraAgent != null)
+        if (cameraAgent != null){
+            if (texture != null)
+                cameraAgent.setPreview(texture);
             cameraAgent.startPreview();
+        }
     }
 
     public void stopPreview() {
@@ -62,6 +67,7 @@ public class CameraController {
     }
 
     public void setPreview(SurfaceTexture surfaceTexture) {
+        texture = surfaceTexture;
         if (cameraAgent != null)
             cameraAgent.setPreview(surfaceTexture);
     }
