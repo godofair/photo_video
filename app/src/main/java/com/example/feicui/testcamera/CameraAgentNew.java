@@ -12,9 +12,11 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaActionSound;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -37,6 +39,8 @@ public class CameraAgentNew extends CameraAgent {
     private PREVIEW_STATE preview_state = PREVIEW_STATE.NOT_START;
     private CameraCharacteristics cameraCharacteristics;
     private ImageReader.OnImageAvailableListener onImageAvailableListener;
+    private CameraCaptureSession.CaptureCallback captureCallback;
+
 
     enum PREVIEW_STATE {NOT_START, REQUEST_START, STARTING, STARTED}
 
@@ -141,10 +145,10 @@ public class CameraAgentNew extends CameraAgent {
         if (imageReader == null) {
             StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             Size size = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
-            imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
+            imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 1);
         }
         try {
-            cameraDevice.createCaptureSession(Arrays.asList(surface,imageReader.getSurface()), sessionStateCallback, handler);
+            cameraDevice.createCaptureSession(Arrays.asList(surface, imageReader.getSurface()), sessionStateCallback, handler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -196,6 +200,7 @@ public class CameraAgentNew extends CameraAgent {
                     public void onImageAvailable(ImageReader reader) {
                         Image image = reader.acquireLatestImage();
                         DataSaveImpl.saveImage(image);
+
                         Log.d(TAG, "save image over");
                     }
                 };
@@ -205,7 +210,21 @@ public class CameraAgentNew extends CameraAgent {
             captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
             captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, 90);
-            cameraCaptureSession.capture(captureRequestBuilder.build(), null, handler);
+            if (captureCallback == null)
+                captureCallback = new CameraCaptureSession.CaptureCallback() {
+                    @Override
+                    public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
+                        super.onCaptureStarted(session, request, timestamp, frameNumber);
+                        Log.d(TAG, "on Capture start framenumber = " + frameNumber);
+                    }
+
+                    @Override
+                    public void onCaptureCompleted(CameraCaptureSession session,
+                                                   CaptureRequest request, TotalCaptureResult result) {
+                        Log.d(TAG, "on Capture Completed result = " + request.toString());
+                    }
+                };
+            cameraCaptureSession.capture(captureRequestBuilder.build(), captureCallback, handler);
 
         } catch (CameraAccessException e) {
             e.printStackTrace();

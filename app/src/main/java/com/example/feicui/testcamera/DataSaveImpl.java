@@ -20,8 +20,8 @@ public class DataSaveImpl {
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat dateFormat = new SimpleDateFormat("_yyyyMMdd_HHmmss");
         String fileName = dateFormat.format(date);
-        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestImg"+fileName + ".jpg")).getAbsolutePath();
-        Log.d("DataSaveImpl","save image file = " + filepath);
+        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestImg" + fileName + ".jpg")).getAbsolutePath();
+        Log.d("DataSaveImpl", "save image file = " + filepath);
         OutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(filepath);
@@ -35,12 +35,12 @@ public class DataSaveImpl {
         }
     }
 
-    public static String getNextVideoFileName(){
+    public static String getNextVideoFileName() {
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat dateFormat = new SimpleDateFormat("_yyyyMMdd_HHmmss");
         String fileName = dateFormat.format(date);
-        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestVIDEO"+fileName + ".mp4")).getAbsolutePath();
-        Log.d("DataSaveImpl","save video file = " + filepath);
+        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestVIDEO" + fileName + ".mp4")).getAbsolutePath();
+        Log.d("DataSaveImpl", "save video file = " + filepath);
         return filepath;
     }
 
@@ -49,8 +49,8 @@ public class DataSaveImpl {
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat dateFormat = new SimpleDateFormat("_yyyyMMdd_HHmmss");
         String fileName = dateFormat.format(date);
-        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestImg"+fileName + ".jpg")).getAbsolutePath();
-        Log.d("DataSaveImpl","save image file = " + filepath);
+        String filepath = (new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "TestImg" + fileName + ".jpg")).getAbsolutePath();
+        Log.d("DataSaveImpl", "save image file = " + filepath);
         OutputStream outputStream = null;
         try {
             outputStream = new FileOutputStream(filepath);
@@ -64,6 +64,9 @@ public class DataSaveImpl {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (image != null)
+                image.close();
         }
     }
 }
