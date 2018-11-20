@@ -18,7 +18,7 @@ public abstract class BasicModule {
 
     abstract public void pause();
 
-    abstract public void startAction();
+    abstract public int startAction();
 
     public void setNewApi(boolean newApi){
         this.newApi = newApi;

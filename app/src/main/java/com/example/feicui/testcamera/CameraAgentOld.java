@@ -113,10 +113,10 @@ public class CameraAgentOld extends CameraAgent implements MediaRecorder.OnInfoL
 
 //        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
-        Log.d(TAG, "set video size  w = " + camcorderProfile.videoFrameWidth + " h = " + camcorderProfile.videoFrameHeight);
+        Log.d(TAG, "startRecord set video size  w = " + camcorderProfile.videoFrameWidth + " h = " + camcorderProfile.videoFrameHeight);
 //        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
 //        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-        mediaRecorder.setCaptureRate(30);
+        mediaRecorder.setVideoFrameRate(30);
 
         mediaRecorder.setOrientationHint(90);
         mediaRecorder.setOutputFile(DataSaveImpl.getNextVideoFileName());

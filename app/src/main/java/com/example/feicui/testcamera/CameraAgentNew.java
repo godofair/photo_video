@@ -14,20 +14,23 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.CamcorderProfile;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaActionSound;
+import android.media.MediaRecorder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class CameraAgentNew extends CameraAgent {
+public class CameraAgentNew extends CameraAgent implements MediaRecorder.OnInfoListener, MediaRecorder.OnErrorListener {
 
     private Context context;
     private CameraManager cameraManager;
@@ -40,15 +43,52 @@ public class CameraAgentNew extends CameraAgent {
     private CameraCharacteristics cameraCharacteristics;
     private ImageReader.OnImageAvailableListener onImageAvailableListener;
     private CameraCaptureSession.CaptureCallback captureCallback;
+    private MediaRecorder mediaRecorder;
 
+    private CamcorderProfile camcorderProfile;
 
-    enum PREVIEW_STATE {NOT_START, REQUEST_START, STARTING, STARTED}
+    /**
+     * Called when an error occurs while recording.
+     *
+     * @param mr    the MediaRecorder that encountered the error
+     * @param what  the type of error that has occurred:
+     *              <ul>
+     *              <li>{@link MediaRecorder#MEDIA_RECORDER_ERROR_UNKNOWN}
+     *              <li>{@link MediaRecorder#MEDIA_ERROR_SERVER_DIED}
+     *              </ul>
+     * @param extra an extra code, specific to the error type
+     */
+    @Override
+    public void onError(MediaRecorder mr, int what, int extra) {
+        Log.d(TAG, "media record error = " + what);
+    }
+
+    /**
+     * Called to indicate an info or a warning during recording.
+     *
+     * @param mr    the MediaRecorder the info pertains to
+     * @param what  the type of info or warning that has occurred
+     *              <ul>
+     *              <li>{@link MediaRecorder#MEDIA_RECORDER_INFO_UNKNOWN}
+     *              <li>{@link MediaRecorder#MEDIA_RECORDER_INFO_MAX_DURATION_REACHED}
+     *              <li>{@link MediaRecorder#MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED}
+     *              </ul>
+     * @param extra an extra code, specific to the info type
+     */
+    @Override
+    public void onInfo(MediaRecorder mr, int what, int extra) {
+        Log.d(TAG, "media record info = " + what);
+        if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED || what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+            stopRecord();
+        }
+    }
+
+    enum PREVIEW_STATE {NOT_START, REQUEST_START, STARTING, STARTED, REQUEST_RECORD, RECORDING, RECORDED}
 
     private CameraCaptureSession cameraCaptureSession;
     private ImageReader imageReader;
 
     public Surface surface;
-
 
     CameraAgentNew(Context context) {
         this.context = context;
@@ -88,21 +128,39 @@ public class CameraAgentNew extends CameraAgent {
             @Override
             public void onConfigured(CameraCaptureSession session) {
                 cameraCaptureSession = session;
-                try {
-                    final CaptureRequest.Builder previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-                    if (imageReader == null) {
-                        StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-                        Size size = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
-                        imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
-                    }
-                    previewRequestBuilder.addTarget(surface);
+                Log.d(TAG, "wy session configure sucess preview_state = " + preview_state);
+                if (preview_state == PREVIEW_STATE.STARTING) {
+                    try {
+                        final CaptureRequest.Builder previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                        if (imageReader == null) {
+                            StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                            Size size = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+                            imageReader = ImageReader.newInstance(size.getWidth(), size.getHeight(), ImageFormat.JPEG, 2);
+                        }
+                        previewRequestBuilder.addTarget(surface);
 
-                    previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
-                    previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-                    cameraCaptureSession.setRepeatingRequest(previewRequestBuilder.build(), null, handler);
-                    preview_state = PREVIEW_STATE.STARTED;
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
+                        previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
+                        previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                        cameraCaptureSession.setRepeatingRequest(previewRequestBuilder.build(), null, handler);
+                        Log.d(TAG, "wy session configure sucess set repeate request ");
+                        preview_state = PREVIEW_STATE.STARTED;
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
+                } else if (preview_state == PREVIEW_STATE.REQUEST_RECORD) {
+                    final CaptureRequest.Builder recordRequestBuilder;
+                    try {
+                        recordRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                        recordRequestBuilder.addTarget(mediaRecorder.getSurface());
+                        recordRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
+                        recordRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                        cameraCaptureSession.setRepeatingRequest(recordRequestBuilder.build(), null, handler);
+                        mediaRecorder.start();
+                        preview_state = PREVIEW_STATE.RECORDING;
+                        Log.d(TAG, "wy session configure sucess start recorder  preview_state = " + preview_state);
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -111,6 +169,8 @@ public class CameraAgentNew extends CameraAgent {
                 if (cameraCaptureSession == session)
                     cameraCaptureSession = null;
                 preview_state = PREVIEW_STATE.NOT_START;
+
+                Log.d(TAG, "wy session configure failed");
             }
         };
     }
@@ -240,12 +300,69 @@ public class CameraAgentNew extends CameraAgent {
 
     @Override
     public void startRecord() {
+        if (texture == null || cameraDevice == null) {
+            Log.e(TAG,"wy start record texture = null or device = null return");
+            return;
+        }
+        if (mediaRecorder == null)
+            mediaRecorder = new MediaRecorder();
 
+        mediaRecorder.reset();
+
+        if (camcorderProfile == null)
+            camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+
+        if (cameraCaptureSession != null) {
+            try {
+                cameraCaptureSession.stopRepeating();
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        cameraCaptureSession.close();
+        cameraCaptureSession = null;
+        Log.e(TAG,"wy start record close preview first");
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+
+        mediaRecorder.setProfile(camcorderProfile);
+
+        mediaRecorder.setVideoSize(camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
+        Log.e(TAG, "wy set video size  w = " + camcorderProfile.videoFrameWidth + " h = " + camcorderProfile.videoFrameHeight);
+
+        mediaRecorder.setVideoFrameRate(30);
+
+        mediaRecorder.setOrientationHint(90);
+        mediaRecorder.setOutputFile(DataSaveImpl.getNextVideoFileName());
+        mediaRecorder.setMaxDuration(60 * 1000);
+        mediaRecorder.setOnInfoListener(this);
+        mediaRecorder.setOnErrorListener(this);
+
+        try {
+            mediaRecorder.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            cameraDevice.createCaptureSession(Arrays.asList(surface, mediaRecorder.getSurface()), null, handler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+
+        preview_state = PREVIEW_STATE.REQUEST_RECORD;
     }
 
     @Override
     public void stopRecord() {
-
+        if (mediaRecorder != null) {
+            Log.d(TAG, "wy stop record");
+            mediaRecorder.stop();
+            mediaRecorder.reset();
+            preview_state = PREVIEW_STATE.RECORDED;
+        }
     }
 
     @Override

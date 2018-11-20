@@ -28,8 +28,8 @@ public class PhotoModule extends BasicModule implements TextureView.SurfaceTextu
     }
 
     @Override
-    public void startAction() {
-        CameraController.getInstance().takePicture();
+    public int startAction() {
+        CameraController.getInstance().takePicture();return 1;
     }
 
     /**

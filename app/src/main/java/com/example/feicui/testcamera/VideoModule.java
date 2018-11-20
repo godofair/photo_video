@@ -19,7 +19,7 @@ public class VideoModule extends BasicModule implements TextureView.SurfaceTextu
     @Override
     public void resume() {
         Log.d(TAG, "resume");
-        CameraController.getInstance().openCamera(mContext,false);
+        CameraController.getInstance().openCamera(mContext,newApi);
         CameraController.getInstance().startPreview();
         isRecording = false;
     }
@@ -33,13 +33,15 @@ public class VideoModule extends BasicModule implements TextureView.SurfaceTextu
     }
 
     @Override
-    public void startAction() {
+    public int startAction() {
         if (isRecording){
             CameraController.getInstance().stopRecord();
             isRecording = false;
+            return 0;
         }else {
             CameraController.getInstance().startRecord();
             isRecording = true;
+            return 1;
         }
     }
 

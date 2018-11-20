@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 
@@ -23,8 +24,9 @@ public class MainCameraActivity extends Activity {
     protected BasicModule mCurrentModule;
     protected PhotoModule mPhotoModule;
     protected VideoModule mVideoModule;
+    protected TextView mRecorderTimer;
 
-    protected String[] permission = {Manifest.permission.CAMERA};
+    protected String[] permission = {Manifest.permission.CAMERA,Manifest.permission.RECORD_AUDIO};
 
     private String TAG = this.getClass().getSimpleName();
 
@@ -94,13 +96,28 @@ public class MainCameraActivity extends Activity {
     }
 
     public void onCaptureClick(View view) {
-        mCurrentModule.startAction();
+        int return_code = mCurrentModule.startAction();
+        switch (return_code){
+            case 0:
+                if (mCurrentModule instanceof PhotoModule)
+                    mCaptureBtn.setText(R.string.capture);
+                else
+                    mCaptureBtn.setText(R.string.record);
+                break;
+            case 1:
+                if (mCurrentModule instanceof VideoModule)
+                    mCaptureBtn.setText(R.string.stop);
+                else
+                    mCaptureBtn.setText(R.string.capture);
+                break;
+        }
     }
 
     public void initView() {
         mDC_DV_Switch = findViewById(R.id.switch_dc_dv);
         mApiSwitch = findViewById(R.id.switch_api);
         mCaptureBtn = findViewById(R.id.capture_btn);
+        mRecorderTimer = findViewById(R.id.record_timer);
 
         switchCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -138,12 +155,14 @@ public class MainCameraActivity extends Activity {
             if (mPhotoModule == null)
                 mPhotoModule = new PhotoModule(MainCameraActivity.this);
             switchModule(mPhotoModule);
+            mCaptureBtn.setText(R.string.photo);
         } else {
             mDC_DV_Switch.setText(R.string.video);
             //start video
             if (mVideoModule == null)
                 mVideoModule = new VideoModule(MainCameraActivity.this);
             switchModule(mVideoModule);
+            mCaptureBtn.setText(R.string.record);
         }
 
     }
